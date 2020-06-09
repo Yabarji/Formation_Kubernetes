@@ -30,8 +30,14 @@ spec:
         volumeMounts:
         - name: www
           mountPath: /srv/http
+        ports:
+          - name: php73
+            containerPort: 9000
       - name: nginx
         image: nginx:1.18
+        ports:
+          - name: nginx-http
+            containerPort: 80
         volumeMounts:
         - name: www
           mountPath: /usr/share/nginx/html
