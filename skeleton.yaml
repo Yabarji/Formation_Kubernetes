@@ -1,0 +1,13 @@
+---
+
+apiVersion: # la version de l'API/ressource
+kind:       # let type de ressource
+metadata:
+  name:     # le nom donné à l'object
+spec:
+  # selector
+  # replica
+  # strategy
+  # template
+
+...
