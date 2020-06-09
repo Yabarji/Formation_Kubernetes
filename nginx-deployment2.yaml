@@ -1,0 +1,54 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: app1
+  name: app1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app1
+  template:
+    metadata:
+      labels:
+        app: app1
+    spec:
+    #  initContainers:
+    #  - name: client-db
+    #    image: mariadb:10.4
+    #    env:
+    #    - name: ROOT_PASSWORD
+    #      value: 'password'
+    #    command: ['sh', '-c',
+    #      'until mysqladmin ping -h mariadb -p 3306;
+    #		do echo waiting for database; sleep 2; done']
+      containers:
+      - name: php73fpm
+        image: php:7.3-fpm
+        volumeMounts:
+        - name: www
+          mountPath: /srv/http
+        ports:
+          - name: php73
+            containerPort: 9000
+      - name: nginx
+        image: nginx:1.18
+        ports:
+          - name: nginx-http
+            containerPort: 80
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+        - name: conf
+          mountPath: /etc/nginx/conf.d/
+      volumes:
+      - name: conf
+        hostPath:
+          path: /kube/conf
+          type: Directory
+      - name: www
+        hostPath:
+          path: /kube/www
+          type: Directory
