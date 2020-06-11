@@ -5,6 +5,7 @@ metadata:
   labels:
     app: mariadb
   name: mariadb
+  namespace: default
   annotations:
     kubernetes.io/change-cause: 'image version: 10.4.8'
 spec:
@@ -21,9 +22,13 @@ spec:
       containers:
       - image: mariadb:10.4.8
         name: mariadb
+        envFrom:
+        - configMapRef: { name: mariadb-cm}
         env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom: { secretKeyRef: { name: mariadb-pass, key: mariadb.root.password } }
+        - name: MYSQL_PASSWORD
+          valueFrom: { secretKeyRef: { name: mariadb-pass, key: mariadb.password } }
         volumeMounts:
         - name: db
           mountPath: /var/lib/mysql/
@@ -31,19 +36,19 @@ spec:
           - name: mariadb-port
             containerPort: 3306
         readinessProbe:
-          initialDelaySeconds: 10
+          initialDelaySeconds: 20
           exec:
             command:
               - "sh"
               - "-c"
               - "mysqladmin status -p$MYSQL_ROOT_PASSWORD"
         livenessProbe:
-          initialDelaySeconds: 10
+          initialDelaySeconds: 20
           exec:
             command:
-               - "sh"
-               - "c"
-               - "mysqladmin status -p$MYSQL_ROOT_PASSWORD"
+              - "sh"
+              - "-c"
+              - "mysqladmin status -p$MYSQL_ROOT_PASSWORD"
       nodeSelector:
         nodeStorage: nvme
       volumes:
