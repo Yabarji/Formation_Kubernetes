@@ -1,0 +1,119 @@
+kubectl version
+
+# Info
+kubectl cluster-info
+kubectl cluster-info dump -o yaml|less
+kubectl config current-context
+
+# Intégrations
+kubectl run -it ubuntu --image=ubuntu:18.04 --rm
+> docker container run -it ...
+kubectl logs -f ubuntu
+> docker container logs -f 
+kubectl exec -it ubuntu -- bash
+> docker container exec -it ...
+kubectl attach ubuntu -it
+> docker container attach -it ...
+
+# Les pods
+kubectl create -f pods.yaml --validate
+# --validate
+# --dry-run
+
+# Les get
+kubectl get pods|nodes|deploy
+
+# La réentrance
+kubectl create deployment nginx --image nginx:1.18 --dry-run -o yaml > nginx-deployment.yaml
+kubectl expose deployment app1 --type=NodePort --port='8066' --target-port='80' --dry-run=client -o yaml > service.yaml
+
+# Collecter des informations
+kubectl describe deployments.apps app1
+kubectl describe pods app1-85f8f47f7-9zrmz
+kubectl logs app1-85f8f47f7-9zrmz db
+
+# Exemple de suppression
+kubectl delete -f nginx-deployment.yaml
+kubectl delete deployment nginx
+
+# Multiple Pods
+kubectl exec -it app1-5ffc65f779-78g88 -c php73fpm -- bash
+kubectl exec -it app1-5ffc65f779-78g88 -c nginx -- bash
+
+## Rolling-update
+# les rollouts
+kubectl rollout history deployment
+kubectl rollout history deployment --revision 3
+kubectl describe deployments.apps app1 |grep revision
+# Les rollbacks
+kubectl rollout undo deployment app1 --to-revision 1
+kubectl diff -f nginx-deployment.yaml
+# Changer le change cause
+kubectl apply -f nginx-deployment.yaml --validate --record=true
+kubectl annotate deployments.apps app1  kubernetes.io/change-cause="image version: 1.19"
+
+# Documentation & bonnes pratiques
+kubectl api-resources
+kubectl explain deploy 
+kubectl explain deploy.spec.replicas
+kubectl explain sts.spec.replicas
+kubectl explain sts.spec.template.spec.volumes
+kubectl explain sts.spec.selector
+
+# Scale-out
+kubectl scale --replicas 10 deployment app1
+kubectl scale --replicas 5 deployment app1
+kubectl scale --replicas 0 deployment app1
+kubectl describe deployments.apps app1|grep replicas
+
+kubectl get replicasets.apps
+kubectl rollout history deployment app1
+
+# Les services
+kubectl get svc
+kubectl describe svc app1
+kubectl get svc,endpoints -o wide
+# Les ingress
+kubectl describe ingress nginx-ingress
+kubectl get ingress
+# Port-forwarding
+kubectl port-forward tomcat-75758c4b7d-2l7dj 8666:8080 &
+>curl 127.0.0.1:8666
+
+# Les labesl
+# # --show-labels
+kubectl get ingress,svc,endpoints,deploy,sts,rs,pods,nodes --show-labels
+kubectl label node minikube nodeEnv=prod
+kubectl label node minikube nodeEnv=dev --overwrite
+kubectl label node minikube nodeEnv=prod --overwrite
+kubectl label deployments.apps app1 version=1.0
+
+# Les selectors
+kubectl get pods --selector 'podEnv=prod'
+kubectl get pods --selector 'env=dev' 
+kubectl get deploy --selector 'version in ('0.1','1.0','1.1'), env=prod'
+
+# Les namespaces
+kubectl get ns
+kubectl config get-contexts
+kubectl create namespace app1 --dry-run -o yaml > ns.app1.yaml
+kubectl create namespace tomcat --dry-run -o yaml > ns.tomcat.yaml
+kubectl apply -f ns.app1.yaml -f ns.tomcat.yaml 
+kubectl get deploy --namespace app1
+kubectl get deploy --namespace tomcat
+kubectl get deploy,sts --all-namespaces
+kubectl config set-context --namespace app1 --current
+# TP namespace
+kubectl run -it ubuntu --image=ubuntu:18.04 --rm --namespace app1
+> apt update && apt install iputils-ping netcat -yq
+> nc -zv svc-app1 80
+> nc -zv svc-app1 9000
+# [OPEN]
+kubectl run -it ubuntu --image=ubuntu:18.04 --rm --namespace default
+> apt update && apt install iputils-ping netcat -yq
+> nc -zv svc-app1 80
+> nc -zv svc-app1 9000
+# [CLOSED]
+> nc -zv svc-app1.app1.svc.cluster.local 80
+> nc -zv svc-app1.app1.svc.cluster.local 9000
+# [OPEN]

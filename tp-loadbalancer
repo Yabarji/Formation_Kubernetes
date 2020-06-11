@@ -1,0 +1,16 @@
+kubectl exec -it app1-58b6fc7558-6wcgn -c nginx -- bash
+>echo "instance 1" > /usr/share/nginx/html/index.html
+kubectl exec -it app1-58b6fc7558-wl42v -c nginx -- bash
+>echo "instance 2" > /usr/share/nginx/html/index.html
+# minikube service list
+while $true; do curl http://172.17.0.2:30955/; sleep 0.5; done
+
+# Volume pour nginx:
+volumeMounts:                     
+- name: www-nginx                 
+  mountPath: /usr/share/nginx/html
+
+volumeMounts:                     
+- name: www-nginx                 
+  mountPath: /usr/share/nginx/html
+

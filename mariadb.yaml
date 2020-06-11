@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: mariadb
+  name: mariadb
+  annotations:
+    kubernetes.io/change-cause: 'image version: 10.4.8'
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: mariadb
+  serviceName: mariadb-svc
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+      - image: mariadb:10.4.8
+        name: mariadb
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom: { secretKeyRef: { name: mariadb-pass, key: mariadb.root.password } }
+        volumeMounts:
+        - name: db
+          mountPath: /var/lib/mysql/
+        ports:
+          - name: mariadb-port
+            containerPort: 3306
+        readinessProbe:
+          initialDelaySeconds: 10
+          exec:
+            command:
+              - "sh"
+              - "-c"
+              - "mysqladmin status -p$MYSQL_ROOT_PASSWORD"
+        livenessProbe:
+          initialDelaySeconds: 10
+          exec:
+            command:
+               - "sh"
+               - "c"
+               - "mysqladmin status -p$MYSQL_ROOT_PASSWORD"
+      nodeSelector:
+        nodeStorage: nvme
+      volumes:
+      - name: db
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mariadb-svc
+  name: mariadb-svc
+spec:
+  ports:
+  - name: mariadb
+    port: 3306
+    protocol: TCP
+    targetPort: 3306
+  clusterIP: None
+  selector:
+    app: mariadb

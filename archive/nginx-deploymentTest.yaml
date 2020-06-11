@@ -7,15 +7,11 @@ metadata:
     version: '1.0'
     env: prod
   name: app1
-  namespace: app1
 spec:
-  replicas: 2
+  replicas: 10
   selector:
     matchLabels:
       app: app1
-    matchExpressions:
-      - { key: podEnv, operator: NotIn, values: ['staging', 'dev'] }
-      - { key: status, operator: In, values: ['enabled'] }
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -25,7 +21,6 @@ spec:
       labels:
         app: app1
         podEnv: prod
-        status: enabled
     spec:
       containers:
       - name: php73fpm
@@ -36,12 +31,6 @@ spec:
         ports:
           - name: php73
             containerPort: 9000
-        readinessProbe:
-          tcpSocket:
-            port: 9000
-        livenessProbe:
-          tcpSocket:
-            port: 9000
       - name: nginx
         image: nginx:1.19
         ports:
@@ -52,21 +41,11 @@ spec:
         env:
           - name: FORMATION
             value: 'kubernetes'
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
         volumeMounts:
         - name: www
           mountPath: /usr/share/nginx/html
         - name: conf
           mountPath: /etc/nginx/conf.d/
-      nodeSelector:
-        nodeEnv: prod
       volumes:
       - name: conf
         hostPath:
@@ -76,5 +55,3 @@ spec:
         hostPath:
           path: /kube/www
           type: Directory
-      - name: www-nginx
-        emptyDir: {}

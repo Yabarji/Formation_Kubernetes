@@ -5,6 +5,7 @@ metadata:
   labels:
     app: app1
   name: svc-app1
+  namespace: app1
 spec:
   ports:
   - name: php73
@@ -21,4 +22,6 @@ spec:
     targetPort: 443
   selector:
     app: app1
-  type: NodePort
+  type: LoadBalancer
+  clusterIP: 10.96.0.3
+
