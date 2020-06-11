@@ -117,3 +117,13 @@ kubectl run -it ubuntu --image=ubuntu:18.04 --rm --namespace default
 > nc -zv svc-app1.app1.svc.cluster.local 80
 > nc -zv svc-app1.app1.svc.cluster.local 9000
 # [OPEN]
+
+# Les secrets
+kubectl get secrets
+kubectl create secret generic mariadb-pass --from-literal=mariadb.root.password='roottoor' --dry-run -o yaml --namespace default > st.yaml
+echo -n 'roottoor'|base64 # print "roottoor"|base64
+
+# Les configMaps
+kubectl create configmap mariadb-cm --dry-run --namespace default -o yaml > cm.yaml
+kubectl get configmaps
+
